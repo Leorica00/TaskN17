@@ -34,11 +34,11 @@ class RegisterViewModel : ViewModel() {
                     }!!
                 } else if (response.code() in 400..499) {
                     _resourceFlow.value = Resource.Error.ClientError(
-                        "${response.code()} " + response.errorBody()?.string()
+                        "${response.code()} ${response.errorBody()?.string()}"
                     )
                 } else {
                     _resourceFlow.value =
-                        Resource.Error.ServerError("Server Error: Code -> ${response.code()}")
+                        Resource.Error.ServerError("Server Error: Code ${response.code()}")
                 }
             } catch (e: Exception) {
                 when (e) {

@@ -43,12 +43,13 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterB
         with(binding) {
             etRegisterEmail.doOnTextChanged { _, _, _, _ -> buttonEnableValidation() }
             etRegisterPassword.doOnTextChanged { _, _, _, _ ->  buttonEnableValidation()}
+            etRegisterRepeatPassword.doOnTextChanged {_, _, _, _ ->  buttonEnableValidation()}
         }
     }
 
     private fun buttonEnableValidation() {
         binding.btnLogin.apply {
-            isEnabled = emailRegex.matches(binding.etRegisterEmail.text.toString().trim()) && binding.etRegisterPassword.text.toString().trim().isNotEmpty() && (binding.etRegisterPassword.text.toString() == binding.etRegisterRepeatPassword.text.toString())
+            isEnabled = emailRegex.matches(binding.etRegisterEmail.text.toString().trim()) && binding.etRegisterPassword.text.toString().isNotEmpty() && binding.etRegisterRepeatPassword.text.toString().isNotEmpty() && (binding.etRegisterPassword.text.toString() == binding.etRegisterRepeatPassword.text.toString())
             if (isEnabled) setBackgroundResource(R.drawable.costume_btn_background)
             else setBackgroundResource(R.drawable.costume_btn_disabled_background)
         }
