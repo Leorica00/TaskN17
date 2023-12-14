@@ -1,4 +1,4 @@
-package com.example.taskn17.authentfication.login
+package com.example.taskn17.presentation.login
 
 import android.view.View
 import android.widget.Toast
@@ -11,25 +11,27 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.taskn17.BaseFragment
 import com.example.taskn17.R
-import com.example.taskn17.authentfication.Resource
-import com.example.taskn17.authentfication.login.api.LoginResponse
+import com.example.taskn17.data.Resource
 import com.example.taskn17.databinding.FragmentLoginBinding
+import com.example.taskn17.domain.login.LoginResponse
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::inflate) {
-    private val emailRegex = Regex("^\\S+@\\S+\\.\\S+$")
     private val loginViewModel: LoginVIewModel by viewModels()
-    var email: String = ""
-    var password: String = ""
 
     override fun setUp() {
         setFragmentResultListener("credentialsRequest") { _, result ->
-            email = result.getString("email").toString()
-            password = result.getString("password").toString()
+            val email = result.getString("email") ?: ""
+            val password = result.getString("password") ?: ""
             binding.etLoginUsername.setText(email)
             binding.etLoginPassword.setText(password)
         }
-        buttonEnableValidation()
+        with(binding) {
+            btnLogin.isEnabled = false
+            btnLogin.setBackgroundResource(R.drawable.costume_btn_disabled_background)
+        }
     }
 
     override fun setUpListeners() {
@@ -43,7 +45,7 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
 
     override fun setUpObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
                 loginViewModel.resourceFlow.collect { resource ->
                     handleResource(resource)
                 }
@@ -53,29 +55,37 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
 
     private fun inputsWatchersListeners() {
         with(binding) {
-            etLoginUsername.doOnTextChanged { _, _, _, _ -> buttonEnableValidation() }
-            etLoginPassword.doOnTextChanged { _, _, _, _ ->  buttonEnableValidation()}
+            etLoginUsername.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
+            etLoginPassword.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
         }
     }
 
-    private fun buttonEnableValidation() {
-        binding.btnLogin.apply {
-            isEnabled = emailRegex.matches(binding.etLoginUsername.text.toString().trim()) && binding.etLoginPassword.text.toString().trim().isNotEmpty()
-            if (isEnabled) setBackgroundResource(R.drawable.costume_btn_background)
-            else setBackgroundResource(R.drawable.costume_btn_disabled_background)
+    private fun validationToEnableButton() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                loginViewModel.onEvent(
+                    LoginEvent.CheckValidation(
+                        binding.etLoginUsername.text.toString(),
+                        binding.etLoginPassword.text.toString()
+                    )
+                )
+            }
         }
     }
-
 
     private fun onLoginClick() {
         inputsWatchersListeners()
         binding.btnLogin.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                loginViewModel.login(binding.etLoginUsername.text.toString().trim(), binding.etLoginPassword.text.toString().trim())
+                loginViewModel.onEvent(
+                    LoginEvent.Login(
+                        binding.etLoginUsername.text.toString().trim(),
+                        binding.etLoginPassword.text.toString().trim()
+                    )
+                )
             }
         }
     }
-
 
     private fun handleResource(resource: Resource<LoginResponse>) {
         when (resource) {
@@ -89,8 +99,16 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
 
             is Resource.Success -> {
                 if (binding.checkboxRememberMe.isChecked) {
-                    goToHomePage(binding.etLoginUsername.text.toString().trim(), resource.response.token, binding.etLoginPassword.text.toString().trim()
-                    )
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        loginViewModel.onEvent(
+                            LoginEvent.SaveSession(binding.etLoginUsername.text.toString().trim())
+                        )
+                        goToHomePage(
+                            binding.etLoginUsername.text.toString().trim(),
+                            resource.response.token,
+                            binding.etLoginPassword.text.toString().trim()
+                        )
+                    }
                 } else {
                     goToHomePage(binding.etLoginUsername.text.toString().trim(), "", "")
                 }
@@ -98,6 +116,14 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
 
             is Resource.Error -> {
                 Toast.makeText(requireContext(), resource.errorMessage, Toast.LENGTH_SHORT).show()
+            }
+
+            is Resource.Valid -> {
+                with(binding.btnLogin) {
+                    isEnabled = resource.isValid
+                    if (isEnabled) setBackgroundResource(R.drawable.costume_btn_background)
+                    else setBackgroundResource(R.drawable.costume_btn_disabled_background)
+                }
             }
         }
     }

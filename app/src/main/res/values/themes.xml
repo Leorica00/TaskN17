@@ -6,4 +6,11 @@
     </style>
 
     <style name="Theme.TaskN17" parent="Base.Theme.TaskN17" />
+    
+    
+    <style name="SplashScreenYt" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="android:windowSplashScreenBackground" tools:targetApi="s">@color/light_brown</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="s">@mipmap/ic_launcher</item>
+    </style>
+
 </resources>

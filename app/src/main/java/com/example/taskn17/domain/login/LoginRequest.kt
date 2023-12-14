@@ -1,4 +1,4 @@
-package com.example.taskn17.authentfication.login.api
+package com.example.taskn17.domain.login
 
 import com.squareup.moshi.Json
 
