@@ -17,7 +17,6 @@ import com.example.taskn17.databinding.FragmentLoginBinding
 import kotlinx.coroutines.launch
 
 class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::inflate) {
-    private val emailRegex = Regex("^\\S+@\\S+\\.\\S+$")
     private val loginViewModel: LoginVIewModel by viewModels()
     var email: String = ""
     var password: String = ""
@@ -29,7 +28,10 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
             binding.etLoginUsername.setText(email)
             binding.etLoginPassword.setText(password)
         }
-        buttonEnableValidation()
+        with(binding) {
+            btnLogin.isEnabled = false
+            btnLogin.setBackgroundResource(R.drawable.costume_btn_disabled_background)
+        }
     }
 
     override fun setUpListeners() {
@@ -53,29 +55,33 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
 
     private fun inputsWatchersListeners() {
         with(binding) {
-            etLoginUsername.doOnTextChanged { _, _, _, _ -> buttonEnableValidation() }
-            etLoginPassword.doOnTextChanged { _, _, _, _ ->  buttonEnableValidation()}
+            etLoginUsername.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
+            etLoginPassword.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
         }
     }
 
-    private fun buttonEnableValidation() {
-        binding.btnLogin.apply {
-            isEnabled = emailRegex.matches(binding.etLoginUsername.text.toString().trim()) && binding.etLoginPassword.text.toString().trim().isNotEmpty()
+    private fun validationToEnableButton() {
+        with(binding.btnLogin) {
+            isEnabled = loginViewModel.checkIfValid(
+                binding.etLoginUsername.text.toString(),
+                binding.etLoginPassword.text.toString()
+            )
             if (isEnabled) setBackgroundResource(R.drawable.costume_btn_background)
             else setBackgroundResource(R.drawable.costume_btn_disabled_background)
         }
     }
 
-
     private fun onLoginClick() {
         inputsWatchersListeners()
         binding.btnLogin.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                loginViewModel.login(binding.etLoginUsername.text.toString().trim(), binding.etLoginPassword.text.toString().trim())
+                loginViewModel.login(
+                    binding.etLoginUsername.text.toString().trim(),
+                    binding.etLoginPassword.text.toString().trim()
+                )
             }
         }
     }
-
 
     private fun handleResource(resource: Resource<LoginResponse>) {
         when (resource) {
@@ -89,7 +95,10 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
 
             is Resource.Success -> {
                 if (binding.checkboxRememberMe.isChecked) {
-                    goToHomePage(binding.etLoginUsername.text.toString().trim(), resource.response.token, binding.etLoginPassword.text.toString().trim()
+                    goToHomePage(
+                        binding.etLoginUsername.text.toString().trim(),
+                        resource.response.token,
+                        binding.etLoginPassword.text.toString().trim()
                     )
                 } else {
                     goToHomePage(binding.etLoginUsername.text.toString().trim(), "", "")

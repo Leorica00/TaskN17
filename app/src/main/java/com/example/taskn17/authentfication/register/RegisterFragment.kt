@@ -13,16 +13,15 @@ import androidx.navigation.fragment.findNavController
 import com.example.taskn17.BaseFragment
 import com.example.taskn17.R
 import com.example.taskn17.authentfication.Resource
-import com.example.taskn17.databinding.FragmentRegisterBinding
 import com.example.taskn17.authentfication.register.api.RegisterResponse
+import com.example.taskn17.databinding.FragmentRegisterBinding
 import kotlinx.coroutines.launch
 
 class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
-    private val emailRegex = Regex("^\\S+@\\S+\\.\\S+$")
     private val registerViewModel: RegisterViewModel by viewModels()
 
     override fun setUp() {
-        buttonEnableValidation()
+
     }
 
     override fun setUpListeners() {
@@ -41,26 +40,32 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterB
 
     private fun inputsWatchersListeners() {
         with(binding) {
-            etRegisterEmail.doOnTextChanged { _, _, _, _ -> buttonEnableValidation() }
-            etRegisterPassword.doOnTextChanged { _, _, _, _ ->  buttonEnableValidation()}
-            etRegisterRepeatPassword.doOnTextChanged {_, _, _, _ ->  buttonEnableValidation()}
+            etRegisterEmail.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
+            etRegisterPassword.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
+            etRegisterRepeatPassword.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
         }
     }
 
-    private fun buttonEnableValidation() {
-        binding.btnLogin.apply {
-            isEnabled = emailRegex.matches(binding.etRegisterEmail.text.toString().trim()) && binding.etRegisterPassword.text.toString().isNotEmpty() && binding.etRegisterRepeatPassword.text.toString().isNotEmpty() && (binding.etRegisterPassword.text.toString() == binding.etRegisterRepeatPassword.text.toString())
+    private fun validationToEnableButton() {
+        with(binding.btnLogin) {
+            isEnabled = registerViewModel.checkIfValid(
+                binding.etRegisterEmail.text.toString(),
+                binding.etRegisterPassword.text.toString(),
+                binding.etRegisterRepeatPassword.text.toString()
+            )
             if (isEnabled) setBackgroundResource(R.drawable.costume_btn_background)
             else setBackgroundResource(R.drawable.costume_btn_disabled_background)
         }
     }
 
-
     private fun onRegisterClick() {
         inputsWatchersListeners()
         binding.btnLogin.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                registerViewModel.register(binding.etRegisterEmail.text.toString().trim(), binding.etRegisterPassword.text.toString().trim())
+                registerViewModel.register(
+                    binding.etRegisterEmail.text.toString().trim(),
+                    binding.etRegisterPassword.text.toString().trim()
+                )
             }
         }
     }
@@ -86,7 +91,8 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterB
             }
 
             is Resource.Error -> {
-                Toast.makeText(requireContext(), resource.errorMessage, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), resource.errorMessage, Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
