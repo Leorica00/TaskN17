@@ -48,13 +48,15 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterB
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 with(binding.btnLogin) {
-                    isEnabled = registerViewModel.onEvent(
-                        RegisterEvent.CheckValidation(
-                            binding.etRegisterEmail.text.toString(),
-                            binding.etRegisterPassword.text.toString(),
-                            binding.etRegisterRepeatPassword.text.toString()
+                    with(binding) {
+                        isEnabled = registerViewModel.onEvent(
+                            RegisterEvent.CheckValidation(
+                                etRegisterEmail.text.toString(),
+                                etRegisterPassword.text.toString(),
+                                etRegisterRepeatPassword.text.toString()
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

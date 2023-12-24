@@ -1,4 +1,4 @@
-package com.example.taskn17.data
+package com.example.taskn17.data.error
 
 import com.squareup.moshi.Json
 

@@ -39,7 +39,7 @@ class RegisterViewModel @Inject constructor(private val registerRepository: Regi
                     is Resource.Loading -> Resource.Loading(loading = it.loading)
                     is Resource.Success -> Resource.Success(response = it.response)
                     is Resource.Error -> Resource.Error(message = it.errorMessage)
-                    else -> Resource.Valid(false)
+                    is Resource.Valid -> Resource.Valid(false)
                 }
             }
         }

@@ -25,7 +25,7 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
         setFragmentResultListener("credentialsRequest") { _, result ->
             val email = result.getString("email") ?: ""
             val password = result.getString("password") ?: ""
-            binding.etLoginUsername.setText(email)
+            binding.etLoginEmail.setText(email)
             binding.etLoginPassword.setText(password)
         }
         with(binding) {
@@ -55,7 +55,7 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
 
     private fun inputsWatchersListeners() {
         with(binding) {
-            etLoginUsername.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
+            etLoginEmail.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
             etLoginPassword.doOnTextChanged { _, _, _, _ -> validationToEnableButton() }
         }
     }
@@ -63,12 +63,14 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
     private fun validationToEnableButton() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                loginViewModel.onEvent(
-                    LoginEvent.CheckValidation(
-                        binding.etLoginUsername.text.toString(),
-                        binding.etLoginPassword.text.toString()
+                with(binding) {
+                    loginViewModel.onEvent(
+                        LoginEvent.CheckValidation(
+                            etLoginEmail.text.toString(),
+                            etLoginPassword.text.toString()
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -78,10 +80,12 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
         binding.btnLogin.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 loginViewModel.onEvent(
-                    LoginEvent.Login(
-                        binding.etLoginUsername.text.toString().trim(),
-                        binding.etLoginPassword.text.toString().trim()
-                    )
+                    with(binding) {
+                        LoginEvent.Login(
+                            etLoginEmail.text.toString().trim(),
+                            etLoginPassword.text.toString().trim()
+                        )
+                    }
                 )
             }
         }
@@ -100,17 +104,20 @@ class LoginFragment : BaseFragment<FragmentLoginBinding>(FragmentLoginBinding::i
             is Resource.Success -> {
                 if (binding.checkboxRememberMe.isChecked) {
                     viewLifecycleOwner.lifecycleScope.launch {
-                        loginViewModel.onEvent(
-                            LoginEvent.SaveSession(binding.etLoginUsername.text.toString().trim())
-                        )
-                        goToHomePage(
-                            binding.etLoginUsername.text.toString().trim(),
-                            resource.response.token,
-                            binding.etLoginPassword.text.toString().trim()
-                        )
+                        with(binding) {
+                            loginViewModel.onEvent(
+                                LoginEvent.SaveSession(etLoginEmail.text.toString().trim())
+                            )
+                            goToHomePage(
+                                etLoginEmail.text.toString().trim(),
+                                resource.response.token,
+                                etLoginPassword.text.toString().trim()
+                            )
+                        }
+                       
                     }
                 } else {
-                    goToHomePage(binding.etLoginUsername.text.toString().trim(), "", "")
+                    goToHomePage(binding.etLoginEmail.text.toString().trim(), "", "")
                 }
             }
 

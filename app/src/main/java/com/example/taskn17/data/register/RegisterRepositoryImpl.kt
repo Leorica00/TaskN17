@@ -1,6 +1,6 @@
 package com.example.taskn17.data.register
 
-import com.example.taskn17.data.AppError
+import com.example.taskn17.data.error.AppError
 import com.example.taskn17.data.Resource
 import com.example.taskn17.domain.register.RegisterRepository
 import com.example.taskn17.domain.register.RegisterResponse

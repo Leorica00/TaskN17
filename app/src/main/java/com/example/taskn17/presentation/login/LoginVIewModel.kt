@@ -20,13 +20,12 @@ class LoginVIewModel @Inject constructor(private val loginRepository: LoginRepos
     )
     val resourceFlow: StateFlow<Resource<LoginResponse>> get() = _resourceFlow
 
-    suspend fun onEvent(event: LoginEvent): Boolean {
+    suspend fun onEvent(event: LoginEvent) {
         when(event) {
             is LoginEvent.CheckValidation -> checkIfValid(email = event.email, password = event.password)
             is LoginEvent.Login -> login(email = event.email, password = event.password)
             is LoginEvent.SaveSession -> saveSessionInDataStore(email = event.email)
         }
-        return false
     }
 
     private fun checkIfValid(email: String, password: String) {
@@ -40,7 +39,7 @@ class LoginVIewModel @Inject constructor(private val loginRepository: LoginRepos
                     is Resource.Loading -> Resource.Loading(it.loading)
                     is Resource.Success -> Resource.Success(it.successData!!)
                     is Resource.Error -> Resource.Error(it.errorMessage)
-                    else -> Resource.Valid(false)
+                    is Resource.Valid -> Resource.Valid(false)
                 }
             }
         }
