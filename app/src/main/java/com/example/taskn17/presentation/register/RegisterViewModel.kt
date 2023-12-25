@@ -32,7 +32,7 @@ class RegisterViewModel @Inject constructor(private val registerRepository: Regi
         _resourceFlow.value =  Resource.Valid(emailRegex.matches(email) && password.trim().isNotEmpty() && (password == repeatPassword))
     }
 
-    suspend fun register(email: String, password: String) {
+    private suspend fun register(email: String, password: String) {
         viewModelScope.launch {
             registerRepository.register(email, password).collect {
                 _resourceFlow.value = when (it) {

@@ -32,7 +32,7 @@ class LoginVIewModel @Inject constructor(private val loginRepository: LoginRepos
         _resourceFlow.value = Resource.Valid(emailRegex.matches(email) && password.trim().isNotEmpty())
     }
 
-    private fun login(email: String, password: String) {
+    private suspend fun login(email: String, password: String) {
         viewModelScope.launch {
             loginRepository.login(email, password).collect {
                 _resourceFlow.value = when (it) {

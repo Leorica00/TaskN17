@@ -66,10 +66,11 @@ class RegisterFragment : BaseFragment<FragmentRegisterBinding>(FragmentRegisterB
         inputsWatchersListeners()
         binding.btnLogin.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                registerViewModel.register(
+                registerViewModel.onEvent(
+                    RegisterEvent.Register(
                     binding.etRegisterEmail.text.toString().trim(),
                     binding.etRegisterPassword.text.toString().trim()
-                )
+                ))
             }
         }
     }
